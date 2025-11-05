@@ -1,0 +1,8 @@
+:root {
+  --lumo-primary-color: hsl(145, 65%, 40%);
+  --lumo-primary-color-50pct: hsla(145, 65%, 40%, 0.5);
+  --lumo-primary-color-10pct: hsla(145, 65%, 40%, 0.1);
+  --lumo-primary-text-color: hsl(145, 65%, 35%);
+  --lumo-link-color: var(--lumo-primary-color);
+  --lumo-link-hover-color: hsl(145, 65%, 35%);
+}
