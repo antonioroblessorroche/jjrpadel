@@ -17,6 +17,7 @@ public class UsuarioService {
     private final UsuarioRepository repo;
     private final PasswordEncoder encoder;
 
+
     public UsuarioService(UsuarioRepository repo, PasswordEncoder encoder) {
         this.repo = repo;
         this.encoder = encoder;
@@ -25,14 +26,42 @@ public class UsuarioService {
     public List<Usuario> findAll() { return repo.findAll(); }
 
     public Usuario save(Usuario u) {
-        if (u.getPassword() != null && !u.getPassword().isBlank()) {
-            u.setPassword(encoder.encode(u.getPassword()));
-        } else if (u.getId() != null) {
-            String existing = repo.findById(u.getId()).map(Usuario::getPassword).orElse(null);
-            u.setPassword(existing);
+        // Si es actualización, recuperar el existente para preservar password si no cambia
+        if (u.getId() != null) {
+            return repo.findById(u.getId())
+                    .map(existing -> {
+                        String incomingPw = u.getPassword();
+
+                        if (incomingPw == null || incomingPw.isBlank()) {
+                            u.setPassword(existing.getPassword());
+                        } else if (isBCrypt(incomingPw)) {
+                            u.setPassword(incomingPw);
+                        } else {
+                            u.setPassword(encoder.encode(incomingPw));
+                        }
+
+                        return repo.save(u);
+                    })
+                    .orElseGet(() -> {
+                        u.setPassword(encodeIfNeeded(u.getPassword()));
+                        return repo.save(u);
+                    });
+        } else {
+            u.setPassword(encodeIfNeeded(u.getPassword()));
+            return repo.save(u);
         }
-        return repo.save(u);
     }
+
+    private String encodeIfNeeded(String raw) {
+        if (raw == null || raw.isBlank()) return raw;      // en altas, mejor validar antes que no sea null
+        return isBCrypt(raw) ? raw : encoder.encode(raw);
+    }
+
+    private boolean isBCrypt(String pw) {
+        // Hashes de BCrypt típicos
+        return pw != null && (pw.startsWith("$2a$") || pw.startsWith("$2b$") || pw.startsWith("$2y$"));
+    }
+
 
     public void delete(Usuario u) { if (u.getId()!=null) repo.deleteById(u.getId()); }
     public long count() { return repo.count(); }
@@ -73,5 +102,9 @@ public class UsuarioService {
 
     public Optional<Usuario> findById(String username) {
         return repo.findById(username);
+    }
+
+    public List<Usuario> findByEquipo(Equipo equipo) {
+        return repo.findByEquipo(equipo);
     }
 }

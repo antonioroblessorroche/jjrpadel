@@ -62,12 +62,11 @@ public class MainLayout extends AppLayout {
         SideNav nav = new SideNav();
 
         nav.addItem(new SideNavItem("Mi perfil", "usuarios/editar/self"));
-
-        // Solo ADMIN: Usuarios y Alta usuario
-        if (isUserInRole("ADMIN")) {
-            nav.addItem(new SideNavItem("Usuarios", UsuarioCrudView.class));
-            nav.addItem(new SideNavItem("Alta usuario", AdminAltaUsuarioView.class));
-        }
+        nav.addItem(new SideNavItem("Entrenamientos", EntrenamientosView.class));
+        nav.addItem(new SideNavItem("Convocatorias", PartidosView.class));
+        nav.addItem(new SideNavItem("Plantilla", UsuarioCrudView.class));
+        nav.addItem(new SideNavItem("Resultados SNP", ResultadosSnpListView.class));
+        nav.addItem(new SideNavItem("Clasificación", ClasificacionView.class));
 
         addToDrawer(nav);
     }

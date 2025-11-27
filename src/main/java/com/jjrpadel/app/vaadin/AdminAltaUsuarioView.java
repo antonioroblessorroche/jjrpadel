@@ -21,15 +21,17 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 
 import jakarta.annotation.security.RolesAllowed;
 
 @Route(value = "admin/alta-usuario", layout = MainLayout.class)
 @PageTitle("Alta de usuario")
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "CAPITAN"})
 public class AdminAltaUsuarioView extends VerticalLayout {
 
     private final UsuarioService usuarioService;
+    private final AuthenticationContext auth;
 
     private final TextField nombre = new TextField("Nombre");
     private final TextField apellidos = new TextField("Apellidos");
@@ -44,14 +46,15 @@ public class AdminAltaUsuarioView extends VerticalLayout {
 
     private final Binder<Usuario> binder = new BeanValidationBinder<>(Usuario.class);
 
-    public AdminAltaUsuarioView(UsuarioService usuarioService) {
+    public AdminAltaUsuarioView(UsuarioService usuarioService, AuthenticationContext auth) {
         this.usuarioService = usuarioService;
+        this.auth = auth;
 
         setPadding(true);
         setSpacing(true);
         add(new H2("Alta de usuario"));
 
-        // Config de campos
+        // Campos
         rol.setLabel("Rol");
         rol.setItems(Role.values());
         rol.setRequiredIndicatorVisible(true);
@@ -69,7 +72,7 @@ public class AdminAltaUsuarioView extends VerticalLayout {
         username.setRequiredIndicatorVisible(true);
         password.setRequiredIndicatorVisible(true);
 
-        // --- Binding explícito (evita choques y controla validaciones) ---
+        // --- Binding explícito ---
         binder.forField(nombre)
                 .asRequired("El nombre es obligatorio")
                 .bind(Usuario::getNombre, Usuario::setNombre);
@@ -109,16 +112,37 @@ public class AdminAltaUsuarioView extends VerticalLayout {
                 new FormLayout.ResponsiveStep("700px", 2)
         );
 
+        // Reglas según quién crea: ADMIN vs CAPITAN
+        aplicarReglasDeCapitanSiCorresponde();
+
         guardar.addClickListener(e -> crearUsuario());
         limpiar.addClickListener(e -> binder.readBean(new Usuario()));
 
         add(form, new HorizontalLayout(guardar, limpiar));
     }
 
+    private void aplicarReglasDeCapitanSiCorresponde() {
+        var principal = auth.getPrincipalName().orElse(null);
+        if (principal == null) return;
+
+        var current = usuarioService.findByUsername(principal).orElse(null);
+        if (current == null) return;
+
+        if (current.getRol() == Role.CAPITAN) {
+            // El capitán solo crea USER y en su propio equipo
+            rol.setValue(Role.USER);
+            rol.setReadOnly(true);
+
+            equipoSelect.setValue(current.getEquipo());
+            equipoSelect.setReadOnly(true);
+        }
+        // Si es ADMIN, no tocamos nada (elige libremente)
+    }
+
     private void crearUsuario() {
         Usuario nuevo = new Usuario();
         try {
-            binder.writeBean(nuevo);  // password en claro → el servicio la hashea
+            binder.writeBean(nuevo);  // password en claro → UsuarioService la hashea
             usuarioService.save(nuevo);
             Notification.show("Usuario creado correctamente", 3000, Notification.Position.TOP_CENTER);
             binder.readBean(new Usuario()); // limpiar
