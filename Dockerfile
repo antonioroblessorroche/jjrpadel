@@ -11,7 +11,7 @@ COPY src ./src
 # Si tienes carpeta frontend/ en Vaadin Flow:
 COPY frontend ./frontend
 # Build producción Vaadin + Spring Boot
-RUN mvn -Pproduction -DskipTests clean package
+RUN mvn -DskipTests clean package
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:21-jre-alpine
@@ -32,7 +32,6 @@ EXPOSE 8080
 
 # Variables de entorno típicas de Spring Boot
 # (mantén secretos fuera de la imagen; se pasan en docker run)
-ENV SPRING_PROFILES_ACTIVE=prod
 
 # Arranque
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar --server.port=${SERVER_PORT}"]
