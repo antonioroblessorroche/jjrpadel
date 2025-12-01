@@ -1,7 +1,6 @@
 package com.jjrpadel.app.config;
 
 import com.jjrpadel.app.repository.UsuarioRepository;
-import com.jjrpadel.app.vaadin.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +43,7 @@ public class SecurityConfig extends VaadinWebSecurity {
         super.configure(http);
 
         // Esta es LA forma correcta de decirle a Vaadin/Spring qué vista es la de login
-        setLoginView(http, LoginView.class);
+        setLoginView(http, com.jjrpadel.app.config.LoginView.class);
 
         // Logout simple: al cerrar sesión vuelve al login
         http.logout(logout -> logout.logoutSuccessUrl("/login"));
