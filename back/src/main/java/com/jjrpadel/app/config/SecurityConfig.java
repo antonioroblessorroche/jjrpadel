@@ -39,9 +39,11 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // Desactivar HSTS y CSRF para evitar problemas con el proxy
-        http.headers(headers -> headers.hsts(hsts -> hsts.disable()));
-        http.csrf(csrf -> csrf.disable());
+        // Desactivar CSRF (necesario para proxy sin SSL configurado en backend)
+        http.csrf().disable();
+        
+        // Desactivar HSTS (evita que el navegador fuerce HTTPS)
+        http.headers().hsts().disable();
 
         // Deja que Vaadin configure lo suyo (recursos estáticos, endpoints internos…)
         super.configure(http);
