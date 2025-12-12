@@ -39,12 +39,11 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // Desactivar CSRF y HSTS usando la sintaxis moderna (Spring Security 6.1+)
+        // Desactivar CSRF
         http.csrf(csrf -> csrf.disable());
         
-        http.headers(headers -> headers
-            .httpStrictTransportSecurity(hsts -> hsts.disable())
-        );
+        // NO configuramos HSTS aquí para evitar errores de compilación.
+        // Nginx se encargará de ocultar la cabecera Strict-Transport-Security.
 
         // Permitir acceso a recursos estáticos y LOGIN explícitamente
         http.authorizeHttpRequests(auth -> auth
