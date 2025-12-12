@@ -39,19 +39,20 @@ public class SecurityConfig extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        // Desactivar CSRF (necesario para proxy sin SSL configurado en backend)
-        http.csrf().disable();
+        // Desactivar CSRF y HSTS usando la sintaxis moderna (Spring Security 6.1+)
+        http.csrf(csrf -> csrf.disable());
         
-        // Desactivar HSTS (evita que el navegador fuerce HTTPS)
-        http.headers().hsts().disable();
+        http.headers(headers -> headers
+            .httpStrictTransportSecurity(hsts -> hsts.disable())
+        );
 
-        // Deja que Vaadin configure lo suyo (recursos estáticos, endpoints internos…)
+        // Deja que Vaadin configure lo suyo
         super.configure(http);
 
-        // Esta es LA forma correcta de decirle a Vaadin/Spring qué vista es la de login
+        // Login view
         setLoginView(http, com.jjrpadel.app.config.LoginView.class);
 
-        // Logout simple: al cerrar sesión vuelve al login
+        // Logout
         http.logout(logout -> logout.logoutSuccessUrl("/login"));
     }
 }
