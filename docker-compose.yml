@@ -5,8 +5,8 @@ services:
   jjrpadel:
     container_name: jjrpadel
     build:
-      context: .
-      dockerfile: ./back/Dockerfile
+      context: ./back
+      dockerfile: Dockerfile
     restart: always
     ports:
       - "8080:8080"
