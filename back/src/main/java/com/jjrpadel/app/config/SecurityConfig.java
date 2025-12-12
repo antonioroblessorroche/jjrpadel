@@ -46,6 +46,12 @@ public class SecurityConfig extends VaadinWebSecurity {
             .httpStrictTransportSecurity(hsts -> hsts.disable())
         );
 
+        // Permitir acceso a recursos estáticos y LOGIN explícitamente
+        http.authorizeHttpRequests(auth -> auth
+            .requestMatchers("/login", "/VAADIN/**", "/favicon.ico", "/robots.txt", "/manifest.webmanifest", "/sw.js", "/offline.html", "/icons/**", "/images/**", "/styles/**", "/h2-console/**").permitAll()
+            .requestMatchers(com.vaadin.flow.server.Utils::isFrameworkInternalRequest).permitAll() 
+        );
+
         // Deja que Vaadin configure lo suyo
         super.configure(http);
 
